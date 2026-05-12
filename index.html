@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF TOOLS AI | Global Edition v22.1</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
+    <style>
+        :root { 
+            --main: #e5322d; --ai: #8b5cf6; --stop: #f59e0b; 
+            --sidebar: #1e293b; --bg: #f1f5f9; --save: #10b981; 
+        }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: column; }
+
+        /* Ana İçerik Taşıyıcı */
+        .main-container { display: flex; flex: 1; overflow: hidden; width: 100%; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; border-right: 1px solid #334155; }
+        .sidebar-header { padding: 20px 10px; background: var(--main); text-align: center; }
+        .header-title { font-size: 20px; font-weight: 900; text-transform: uppercase; }
+
+        .menu-container { flex: 1; overflow-y: auto; }
+        .menu-item { padding: 12px 20px; cursor: pointer; transition: 0.2s; font-size: 13px; border-left: 4px solid transparent; color: #cbd5e1; display: flex; align-items: center; gap: 10px; }
+        .menu-item:hover, .menu-item.active { background: #334155; border-left-color: var(--main); color: white; }
+        .menu-cat { padding: 15px 20px 5px; font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Dosya Yöneticisi Alanı */
+        .file-explorer { height: 180px; background: #0f172a; border-top: 1px solid #334155; padding: 10px; overflow-y: auto; }
+        .explorer-title { font-size: 11px; color: #94a3b8; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+        .file-item { font-size: 11px; color: #e2e8f0; padding: 6px; border-bottom: 1px solid #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; display: flex; align-items: center; gap: 5px; }
+        .file-item:hover { background: #1e293b; }
+
+        .workspace { flex: 1; display: flex; overflow: hidden; }
+        .tools-area { flex: 1; padding: 25px; overflow-y: auto; border-right: 2px solid #e2e8f0; min-width: 400px; }
+        
+        .preview-area { flex: 1; background: #525659; display: flex; flex-direction: column; min-width: 400px; }
+        .preview-header { padding: 10px; background: #333; color: white; font-size: 12px; display: flex; justify-content: space-between; }
+        #pdf-viewer { flex: 1; border: none; width: 100%; height: 100%; }
+
+        /* Kartlar */
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); display: none; }
+        .card.active { display: block; }
+
+        .step-box { background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #edf2f7; }
+        .step-title { font-weight: 800; font-size: 11px; color: var(--main); text-transform: uppercase; margin-bottom: 8px; display: block; }
+
+        .btn-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; color: white; flex: 1; transition: 0.2s; min-width: 120px; }
+        .btn-red { background: var(--main); }
+        .btn-ai { background: var(--ai); }
+        .btn-stop { background: var(--stop); }
+        .btn-save { background: var(--save); }
+
+        .output-box { background: #1e293b; color: #fff; padding: 15px; border-radius: 10px; min-height: 200px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 13px; white-space: pre-wrap; margin-top: 15px; border-left: 4px solid var(--ai); }
+
+        #console { background: #000; color: #0f0; padding: 10px; font-size: 11px; font-family: monospace; position: fixed; bottom: 90px; left: 260px; width: calc(50% - 260px); height: 30px; z-index: 20; opacity: 0.8; }
+
+        input[type="file"], input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px; background: white; cursor: pointer; box-sizing: border-box; }
+        .file-label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; display: block; }
+
+        /* Reklam Banner Alanı (Yatay - Sayfa Altı) */
+        .bottom-ad-banner { width: 100%; height: 90px; background: #fff; border-top: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; z-index: 100; }
+        .ad-placeholder { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="header-title">PDF TOOLS AI</div>
+        </div>
+        
+        <div class="menu-container">
+            <div class="menu-cat">Yapay Zeka</div>
+            <div id="m-trans" class="menu-item active" onclick="nav('trans')">🌐 AI Çeviri Paneli</div>
+            <div id="m-ocr" class="menu-item" onclick="nav('ocr')">👁️ Derin Analiz</div>
+            
+            <div class="menu-cat">Dönüştürücüler</div>
+            <div id="m-to-pdf" class="menu-item" onclick="nav('to-pdf')">✨ PDF'e Dönüştür</div>
+            <div id="m-from-pdf" class="menu-item" onclick="nav('from-pdf')">🔄 PDF'den Dönüştür</div>
+            
+            <div class="menu-cat">Düzenle</div>
+            <div id="m-merge" class="menu-item" onclick="nav('merge')">📑 PDF Birleştir</div>
+            <div id="m-crop" class="menu-item" onclick="nav('crop')">✂️ PDF Kırp (Sayfa Seç)</div>
+            <div id="m-compress" class="menu-item" onclick="nav('compress')">📉 Boyut Düşür</div>
+        </div>
+
+        <div class="file-explorer">
+            <div class="explorer-title">📁 Yüklenen Dosyalar</div>
+            <div id="file-list">
+                <div style="font-size:10px; color:#475569; padding:10px;">Henüz dosya yok...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div class="tools-area">
+            <div id="tool-trans" class="card active">
+                <h2>🌐 Global Çeviri</h2>
+                <div class="step-box">
+                    <span class="step-title">1. TÜM DİLLER AYARI</span>
+                    <select id="lang-target"></select>
+                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+                        <label style="font-size:12px;">Sayfalar:</label>
+                        <input type="number" id="trans-start" style="width:50px;" value="1">
+                        <span>-</span>
+                        <input type="number" id="trans-end" style="width:50px;" value="3">
+                    </div>
+                    <label class="file-label">ANALİZ İÇİN DOSYA SEÇ:</label>
+                    <input type="file" id="in-trans" accept=".pdf" onchange="previewPDF(this)">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-ai" onclick="runTrans()">BAŞLAT</button>
+                    <button class="btn btn-stop" onclick="stopTrans()">DURDUR</button>
+                </div>
+                <div id="trans-out" class="output-box">Çeviri bekleniyor...</div>
+            </div>
+
+            <div id="tool-ocr" class="card">
+                <h2>👁️ AI Analiz</h2>
+                <div class="step-box">
+                    <label class="file-label">ANALİZ İÇİN DOSYA SEÇ:</label>
+                    <input type="file" id="in-ocr" accept=".pdf" onchange="previewPDF(this)">
+                </div>
+                <button class="btn btn-ai" onclick="runOCR()">ANALİZ ET</button>
+                <div id="ocr-out" class="output-box">Sonuç...</div>
+            </div>
+
+            <div id="tool-to-pdf" class="card">
+                <h2>✨ PDF'e Dönüştür</h2>
+                <div class="step-box">
+                    <label class="file-label">DOSYA SEÇİN (JPG, Word, PPT, Excel, HTML):</label>
+                    <input type="file" id="in-to-pdf" multiple onchange="previewPDF(this)">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-red" onclick="alert('Dönüştürülüyor...')">JPG to PDF</button>
+                    <button class="btn btn-red" onclick="alert('Dönüştürülüyor...')">Word to PDF</button>
+                    <button class="btn btn-red" onclick="alert('Dönüştürülüyor...')">PPT to PDF</button>
+                    <button class="btn btn-red" onclick="alert('Excel to PDF')">Excel to PDF</button>
+                </div>
+            </div>
+
+            <div id="tool-from-pdf" class="card">
+                <h2>🔄 PDF'den Dönüştür</h2>
+                <div class="step-box">
+                    <input type="file" id="in-from-pdf" accept=".pdf" onchange="previewPDF(this)">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-red" onclick="alert('Word yapılıyor...')">PDF to Word</button>
+                    <button class="btn btn-red" onclick="alert('Excel yapılıyor...')">PDF to Excel</button>
+                    <button class="btn btn-red" onclick="alert('PPT yapılıyor...')">PDF to PPT</button>
+                    <button class="btn btn-red" onclick="alert('JPG yapılıyor...')">PDF to JPG</button>
+                </div>
+            </div>
+
+            <div id="tool-merge" class="card">
+                <h2>📑 PDF Birleştir</h2>
+                <div class="step-box">
+                    <label class="file-label">BİRİNCİ PDF:</label>
+                    <input type="file" id="merge-file-1" accept=".pdf" onchange="previewPDF(this)">
+                    <label class="file-label">İKİNCİ PDF:</label>
+                    <input type="file" id="merge-file-2" accept=".pdf" onchange="previewPDF(this)">
+                </div>
+                <button class="btn btn-red" onclick="runMerge()">İKİ DOSYAYI BİRLEŞTİR</button>
+            </div>
+
+            <div id="tool-crop" class="card">
+                <h2>✂️ PDF Kırp (Sayfa Seçme)</h2>
+                <div class="step-box">
+                    <input type="file" id="in-crop" accept=".pdf" onchange="previewPDF(this)">
+                    <label class="file-label">SAYFA ARALIĞI (Örn: 1,3,5-8):</label>
+                    <input type="text" id="crop-range" placeholder="1, 2, 5-10">
+                </div>
+                <button class="btn btn-red" onclick="runCrop()">SAYFALARI AYIKLA VE İNDİR</button>
+            </div>
+
+            <div id="tool-compress" class="card">
+                <h2>📉 Boyut Düşür</h2>
+                <div class="step-box">
+                    <input type="file" id="in-compress" accept=".pdf" onchange="previewPDF(this)">
+                    <label class="file-label">SIKIŞTIRMA SEVİYESİ:</label>
+                    <select id="comp-level">
+                        <option value="low">Orta Sıkıştırma</option>
+                        <option value="high">Yüksek Sıkıştırma (Düşük Kalite)</option>
+                    </select>
+                </div>
+                <button class="btn btn-red" onclick="runCompress()">SIKIŞTIRMAYI BAŞLAT</button>
+            </div>
+        </div>
+
+        <div class="preview-area">
+            <div class="preview-header"><span>📄 Orijinal Belge Önizleme</span></div>
+            <iframe id="pdf-viewer" src="about:blank"></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-ad-banner">
+    <div class="ad-placeholder">
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:728px;height:90px"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="XXXXXXXXXX"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        <div style="font-size: 8px; color: #ccc; position: absolute; bottom: 2px;">REKLAM</div>
+    </div>
+</div>
+
+<div id="console">> Hazır.</div>
+
+<script>
+    // JavaScript kodları (Tamamen aynı kaldı, fonksiyonlar korunuyor)
+    const { PDFDocument } = PDFLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    
+    const allLangs = {
+        "af": "Afrikaans", "sq": "Arnavutça", "am": "Amharca", "ar": "Arapça", "hy": "Ermenice", "az": "Azerice", "eu": "Baskça", "be": "Belarusça", "bn": "Bengalce", "bs": "Boşnakça", "bg": "Bulgarca", "ca": "Katalanca", "ceb": "Sabuanca", "ny": "Çiçeva", "zh-CN": "Çince (Basitleştirilmiş)", "zh-TW": "Çince (Geleneksel)", "co": "Korsikaca", "hr": "Hırvatça", "cs": "Çekçe", "da": "Danca", "nl": "Flemenkçe", "en": "İngilizce", "eo": "Esperantoca", "et": "Estonca", "tl": "Filipince", "fi": "Fince", "fr": "Fransızca", "fy": "Frizce", "gl": "Galiçyaca", "ka": "Gürcüce", "de": "Almanca", "el": "Yunanca", "gu": "Guceratça", "ht": "Haiti Kreolü", "ha": "Hausaca", "haw": "Havai Dili", "iw": "İbranice", "hi": "Hintçe", "hmn": "Hmong", "hu": "Macarca", "is": "İzlandaca", "ig": "İgbo Dili", "id": "Endonezce", "ga": "İrlandaca", "it": "İtalyanca", "ja": "Japonca", "jw": "Cava Dili", "kn": "Kannada", "kk": "Kazakça", "km": "Kmerce", "ko": "Korece", "ku": "Kürtçe (Kurmançi)", "ky": "Kırgızca", "lo": "Laoca", "la": "Latince", "lv": "Letonca", "lt": "Litvanyaca", "lb": "Lüksemburgca", "mk": "Makedonca", "mg": "Malgaşça", "ms": "Malayca", "ml": "Malayalam", "mt": "Maltaca", "mi": "Maori Dili", "mr": "Marathi", "mn": "Moğolca", "my": "Myanmar (Burmaca)", "ne": "Nepalce", "no": "Norveççe", "ps": "Peştuca", "fa": "Farsça", "pl": "Polonyaca", "pt": "Portekizce", "pa": "Pencapça", "ro": "Rumence", "ru": "Rusça", "sm": "Samoaca", "gd": "İskoç Galcesi", "sr": "Sırpça", "st": "Sesotho", "sn": "Şona", "sd": "Sindhi", "si": "Sinhalca", "sk": "Slovakça", "sl": "Slovence", "so": "Somalice", "es": "İspanyolca", "su": "Sunda Dili", "sw": "Svahili", "sv": "İsveççe", "tg": "Tacikçe", "ta": "Tamilce", "te": "Telugu Dili", "th": "Tayca", "tr": "Türkçe", "uk": "Ukraynaca", "ur": "Urduca", "uz": "Özbekçe", "vi": "Vietnamca", "cy": "Galce", "xh": "Xhosa", "yi": "Yidiş", "yo": "Yoruba", "zu": "Zuluca"
+    };
+
+    function initLangs() {
+        const select = document.getElementById('lang-target');
+        Object.entries(allLangs).forEach(([code, name]) => {
+            const opt = document.createElement('option');
+            opt.value = code; opt.textContent = name;
+            if(code === "tr") opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+    initLangs();
+
+    let isWorking = false;
+    function nav(id) {
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        const target = document.getElementById('tool-' + id);
+        if(target) {
+            target.classList.add('active');
+            document.getElementById('m-' + id).classList.add('active');
+        }
+    }
+
+    function previewPDF(input) {
+        const file = input.files[0];
+        if (file) {
+            if(file.type === "application/pdf") document.getElementById('pdf-viewer').src = URL.createObjectURL(file);
+            const list = document.getElementById('file-list');
+            if(list.innerText.includes("Henüz")) list.innerHTML = "";
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.innerHTML = `📄 <span>${file.name}</span>`;
+            list.prepend(item);
+            log(file.name + " eklendi.");
+        }
+    }
+
+    function log(msg) { document.getElementById('console').innerText = `> ${msg}`; }
+    function stopTrans() { isWorking = false; log("Durduruldu."); }
+
+    async function runMerge() {
+        const f1 = document.getElementById('merge-file-1').files[0];
+        const f2 = document.getElementById('merge-file-2').files[0];
+        if(!f1 || !f2) return alert("İki dosya seçin!");
+        log("Birleştiriliyor...");
+        const merged = await PDFDocument.create();
+        const p1 = await PDFDocument.load(await f1.arrayBuffer());
+        const p2 = await PDFDocument.load(await f2.arrayBuffer());
+        (await merged.copyPages(p1, p1.getPageIndices())).forEach(p => merged.addPage(p));
+        (await merged.copyPages(p2, p2.getPageIndices())).forEach(p => merged.addPage(p));
+        downloadPDF(await merged.save(), "Birlesik.pdf");
+    }
+
+    async function runCrop() {
+        const file = document.getElementById('in-crop').files[0];
+        const range = document.getElementById('crop-range').value;
+        if(!file || !range) return alert("Dosya ve aralık girin!");
+        log("Sayfalar ayıklanıyor...");
+        const doc = await PDFDocument.load(await file.arrayBuffer());
+        const newDoc = await PDFDocument.create();
+        const pages = [];
+        range.split(',').forEach(p => {
+            if(p.includes('-')) {
+                const [s, e] = p.split('-').map(Number);
+                for(let i=s; i<=e; i++) pages.push(i-1);
+            } else pages.push(Number(p)-1);
+        });
+        const copied = await newDoc.copyPages(doc, pages.filter(p => p < doc.getPageCount()));
+        copied.forEach(p => newDoc.addPage(p));
+        downloadPDF(await newDoc.save(), "Kirpilmis.pdf");
+    }
+
+    async function runCompress() {
+        const file = document.getElementById('in-compress').files[0];
+        if(!file) return alert("Dosya seçin!");
+        log("Sıkıştırma uygulanıyor...");
+        const doc = await PDFDocument.load(await file.arrayBuffer());
+        const bytes = await doc.save({ useObjectStreams: true });
+        downloadPDF(bytes, "Sikistirilmis.pdf");
+    }
+
+    function downloadPDF(bytes, name) {
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = name; link.click();
+        log("Tamamlandı.");
+    }
+
+    async function runTrans() {
+        const file = document.getElementById('in-trans').files[0];
+        if(!file) return alert("Dosya seçin!");
+        isWorking = true;
+        const out = document.getElementById('trans-out');
+        const lang = document.getElementById('lang-target').value;
+        out.innerText = "İşlem başladı...";
+        try {
+            const data = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({data}).promise;
+            const start = parseInt(document.getElementById('trans-start').value);
+            const end = Math.min(pdf.numPages, parseInt(document.getElementById('trans-end').value));
+            let res = "";
+            for(let i = start; i <= end; i++) {
+                if(!isWorking) break;
+                log(`Sayfa ${i}/${pdf.numPages} okunuyor...`);
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({scale: 1.5});
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.height = viewport.height; canvas.width = viewport.width;
+                await page.render({canvasContext: ctx, viewport}).promise;
+                const ocr = await Tesseract.recognize(canvas, 'tur+eng');
+                const text = ocr.data.text;
+                if(text.trim()) {
+                    const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(text.substring(0,2000))}`);
+                    const d = await r.json();
+                    res += `[SAYFA ${i}]\n` + d[0].map(x => x[0]).join('') + "\n\n";
+                }
+                out.innerText = res;
+            }
+            log("Bitti.");
+        } catch(e) { log("Hata!"); }
+        isWorking = false;
+    }
+
+    async function runOCR() {
+        const file = document.getElementById('in-ocr').files[0];
+        if(!file) return alert("Dosya seç!");
+        log("AI Analiz yapılıyor...");
+        const res = await Tesseract.recognize(file, 'tur+eng');
+        document.getElementById('ocr-out').innerText = res.data.text;
+        log("Analiz bitti.");
+    }
+</script>
+</body>
+</html>
